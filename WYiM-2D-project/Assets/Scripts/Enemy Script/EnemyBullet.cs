@@ -4,27 +4,22 @@ using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
-    private Vector2 moveDirection;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float bulletTimeOut;
+    [SerializeField] private Rigidbody2D rb;
 
     private int dmg = 1;
 
-
     void OnEnable()
     {
+        rb = GetComponent<Rigidbody2D>();
         Invoke("Destroy", bulletTimeOut);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Setup(Vector3 bulletDir)
     {
-        transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
-    }
-
-    public void SetMoveDirection(Vector2 dir)
-    {
-        moveDirection = dir;
+        rb.AddForce(bulletDir * moveSpeed, ForceMode2D.Impulse);
+        transform.eulerAngles = new Vector3(0, 0, GetAngleFromVectorFloat(bulletDir));
     }
 
     private void Destroy()
@@ -48,5 +43,14 @@ public class EnemyBullet : MonoBehaviour
         {
             Destroy();
         }
+    }
+
+    public static float GetAngleFromVectorFloat(Vector3 dir)
+    {
+        dir = dir.normalized;
+        float n = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        if (n < 0)
+            n += 360;
+        return n;
     }
 }

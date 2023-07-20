@@ -8,11 +8,12 @@ public class ExtraPies : MonoBehaviour
     public PauseMenu addFunction;
 
     public int num;
+    int pies;
 
     // Start is called before the first frame update
     void Start()
     {
-        PieAdder.SetActive(true);
+        gameObject.SetActive(true);
     }
 
     // Update is called once per frame
@@ -25,8 +26,9 @@ public class ExtraPies : MonoBehaviour
     {
         if(hit.CompareTag("Player"))
         {
-            PieAdder.SetActive(false);
-            addFunction.refillPies(num);
+            int numpie = PlayerPrefs.GetInt("PieAmmo") + num;
+            PlayerPrefs.SetInt("PieAmmo", numpie);
+            Destroy(gameObject);
         }
     }
 }

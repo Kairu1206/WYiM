@@ -5,20 +5,27 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 
+
 public class PlayerHealth : MonoBehaviour
 {
-    private int maxHealth;
-    private int currentHealth;
+    public int maxHealth;
+    public int currentHealth;
+
+    private Scene scene;
 
     [SerializeField] private PlayerMovement playerMov;
+    [SerializeField] private ShieldPowerUp shields;
 
     public bool Dash;
+    public bool shieldsUp;
 
-    private int healthPerHeart = 2;
+    public int healthPerHeart = 2;
 
     public Slider[] hearts;
     public GameObject diedImage;
     public GameObject playAgainbutton;
+    public GameObject MainMenubutton;
+    public GameObject HUD;
     public AudioSource hitSound;
 
     public Sprite[] hearts_sprite;
@@ -29,62 +36,109 @@ public class PlayerHealth : MonoBehaviour
     {
         maxHealth = PlayerPrefs.GetInt("playerMaxHealth");
         currentHealth = PlayerPrefs.GetInt("playerCurrentHealth");
-        currentHealth = maxHealth;
+
         playerMov = GetComponent<PlayerMovement>();
         diedImage.SetActive(false);
         playAgainbutton.SetActive(false);
+        MainMenubutton.SetActive(false);
         Dash = playerMov.dashCheck();
+        scene = SceneManager.GetActiveScene();
+        Debug.Log(maxHealth);
     }
 
     // Update is called once per frame
-    void Update()
+    public void Update()
     {
         Dash = playerMov.dashCheck();
+        shieldsUp = GetComponent<ShieldPowerUp>().getShields();
         UpdateHealthBar();
+        if(currentHealth > 0)
+        {
+            HUD.SetActive(true);
+        }
+        else
+        {
+            HUD.SetActive(false);
+        }
     }
 
     public void takeDamage(int damage)                             // Function for taking damage
     {
-        if (Dash == false)
+        if (scene.name == "Level 1")
         {
-            //sound here
-            hitSound.Play();
-            currentHealth -= damage;                                  // Reduce current health
-            PlayerPrefs.SetInt("playerCurrentHealth", currentHealth); // Store current health
-            UpdateHealthBar();
-            if (currentHealth <= 0)
+            if (!Dash && !shieldsUp)
             {
-                // If current health is <= 0, then do these
-                diedImage.SetActive(true);
-                playAgainbutton.SetActive(true);
-                Time.timeScale = 0f;
+                //sound here
+                hitSound.Play();
+                currentHealth -= (damage*2);                                  // Reduce current health
+                PlayerPrefs.SetInt("playerCurrentHealth", currentHealth); // Store current health
+                UpdateHealthBar();
+                if (currentHealth <= 0)
+                {
+                    // If current health is <= 0, then do these
+                    diedImage.SetActive(true);
+                    playAgainbutton.SetActive(true);
+                    MainMenubutton.SetActive(true);
+                    Time.timeScale = 0f;
+                }
+                Debug.Log(damage);
+                Debug.Log(currentHealth);
             }
-            Debug.Log(damage);
-            Debug.Log(currentHealth);
+            else if(!Dash && shieldsUp){ //Case of not rolling, but with shield power up, do damage to shields instead
+                GetComponent<ShieldPowerUp>().decrementShield(damage);
+            }
+            else
+            { //Case of rolling, no damage taken
+                Debug.Log("Rolling");
+                return;
+            }
+
         }
         else
         {
-            Debug.Log("Rolling");
-            return;
+
+            if (!Dash && !shieldsUp)
+            {
+                //sound here
+                hitSound.Play();
+                currentHealth -= damage;                                  // Reduce current health
+                PlayerPrefs.SetInt("playerCurrentHealth", currentHealth); // Store current health
+                UpdateHealthBar();
+                if (currentHealth <= 0)
+                {
+                    // If current health is <= 0, then do these
+                    diedImage.SetActive(true);
+                    playAgainbutton.SetActive(true);
+                    MainMenubutton.SetActive(true);
+                    Time.timeScale = 0f;
+                }
+                Debug.Log(damage);
+                Debug.Log(currentHealth);
+            }
+            else if(!Dash && shieldsUp){ //Case of not rolling, but with shield power up, do damage to shields instead
+                GetComponent<ShieldPowerUp>().decrementShield(damage);
+            }
+            else
+            { //Case of rolling, no damage taken
+                Debug.Log("Rolling");
+                return;
+            }
         }
     }
 
-    public void Heal(int hp)                                        //Function for healing
+    public void Heal(int health)                                        //Function for healing
     {
-        if (currentHealth >= maxHealth)                              // Check if current health >= max health
-        {
-            currentHealth = maxHealth;                             // If do, then set current health = max health to prevent the current health go over max health
-        }
-        else
-        {
-            currentHealth += hp;                                    // Otherwise, set current health += the amount of healing
+        if(currentHealth >= 4){
+            currentHealth = maxHealth;
+        }    
+        else{ // Otherwise, set current health += the amount of healing
+            currentHealth += health;
         }
         PlayerPrefs.SetInt("playerCurrentHealth", currentHealth);  // Store current health
         UpdateHealthBar();
-
     }
 
-    void UpdateHealthBar()                                // Function for update the UI of health bar
+    public void UpdateHealthBar()                                // Function for update the UI of health bar
     {
         int hp = currentHealth;                          // Counter for current health
         foreach (Slider heart in hearts)
@@ -126,6 +180,12 @@ public class PlayerHealth : MonoBehaviour
     public int getHealth()
     {
         return currentHealth;
+    }
+
+    public void outOfTime(){
+        currentHealth = 0;
+        PlayerPrefs.SetInt("playerCurrentHealth", currentHealth);
+        takeDamage(0);
     }
 
     public void reset(){

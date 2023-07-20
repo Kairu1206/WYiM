@@ -3,16 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using TMPro;
 
 public class ButtonControl : MonoBehaviour
 {
-    public int leveltrack = 0;
+    public GameObject regPlayButton;
+    public GameObject chalButton;
+    public GameObject quitButton;
+    public Toggle instructToggle;
 
+    void Start(){
+        if(instructToggle.isOn){
+            PlayerPrefs.SetInt("instructionOption", 1);
+        }
+        else{
+            PlayerPrefs.SetInt("instructionOption", 0);
+        }
+    }
 
     public void OnButtonPress()
     {
+        if(instructToggle.isOn){
+            PlayerPrefs.SetInt("instructionOption", 1);
+        }
+        else{
+            PlayerPrefs.SetInt("instructionOption", 0);
+        }
+
         SceneManager.LoadScene("Pre-Level");
-        leveltrack = 0;
+
+        PlayerPrefs.SetInt("GameMode", 0);
 
         PlayerPrefs.SetInt("playerMaxHealth", 6);                                         // Set player max health
         PlayerPrefs.SetInt("playerCurrentHealth", PlayerPrefs.GetInt("playerMaxHealth")); // Set player current health to max health
@@ -24,13 +45,29 @@ public class ButtonControl : MonoBehaviour
         Application.Quit();
     }
 
-    public int getLevel()
-    {
-        return leveltrack;
+    public void challengeMode(){
+        if(instructToggle.isOn){
+            PlayerPrefs.SetInt("instructionOption", 1);
+        }
+        else{
+            PlayerPrefs.SetInt("instructionOption", 0);
+        }
+
+        SceneManager.LoadScene("Pre-Level");
+
+        PlayerPrefs.SetInt("GameMode", 1);
+
+        PlayerPrefs.SetInt("playerMaxHealth", 6);                                         // Set player max health
+        PlayerPrefs.SetInt("playerCurrentHealth", PlayerPrefs.GetInt("playerMaxHealth")); // Set player current health to max health
+        Time.timeScale = 1f;
     }
-    public void changeLevel()
-    {
-        leveltrack++;
-        Debug.Log(leveltrack);
+
+    public void InstructToggle(){
+        if(instructToggle.isOn){
+            PlayerPrefs.SetInt("instructionOption", 1);
+        }
+        else{
+            PlayerPrefs.SetInt("instructionOption", 0);
+        }
     }
 }
